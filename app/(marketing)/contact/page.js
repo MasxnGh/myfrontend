@@ -4,8 +4,6 @@ export default function Contact() {
   return (
     <>
     <h1><center>Contact</center></h1>
-    <Card />
-    <Footer />
     </>
   );
 }
