@@ -7,84 +7,84 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const isActive = (href) =>
-    pathname === href ? "nav-link active text-warning fw-semibold" : "nav-link text-white";
+    pathname === href ? "text-warning fw-semibold" : "text-white";
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-navbar shadow-sm py-3 sticky-top">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-sm sticky-top">
       <div className="container">
-        {/* Logo */}
-        <Link href="/" className="navbar-brand fs-4 fw-bold text-glow">
-          WEBTEST
+        {/* Logo / Brand */}
+        <Link href="/" className="navbar-brand fs-4 fw-bold text-white">
+          MONDE
         </Link>
 
-        {/* Toggle (Mobile) */}
+        {/* Toggle button for mobile */}
         <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarMain"
-          aria-controls="navbarMain"
+          data-bs-target="#mainNavbar"
+          aria-controls="mainNavbar"
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon" />
         </button>
 
-        {/* Menu */}
-        <div className="collapse navbar-collapse" id="navbarMain">
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+        {/* Collapsible content */}
+        <div className="collapse navbar-collapse justify-content-center" id="mainNavbar">
+          <ul className="navbar-nav gap-lg-4 text-center">
             <li className="nav-item">
-              <Link href="/" className={isActive("/")}>
-                หน้าแรก
+              <Link href="/" className={`nav-link ${isActive("/")}`}>
+                HOME
               </Link>
             </li>
             <li className="nav-item">
-              <Link href="/about" className={isActive("/about")}>
-                เกี่ยวกับเรา
+              <Link href="/brand" className={`nav-link ${isActive("/brand")}`}>
+                BRAND
               </Link>
             </li>
             <li className="nav-item">
-              <span className="nav-link text-white">เร็ว ๆ นี้</span>
+              <Link href="/collection" className={`nav-link ${isActive("/collection")}`}>
+                COLLECTION
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/blog" className={`nav-link ${isActive("/blog")}`}>
+                BLOG
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/contact" className={`nav-link ${isActive("/contact")}`}>
+                CONTACT
+              </Link>
+            </li>
+            {/* LOGIN shown even on mobile */}
+            <li className="nav-item d-lg-none">
+              <Link href="/login" className="nav-link text-warning fw-semibold">
+                LOGIN
+              </Link>
             </li>
           </ul>
+        </div>
 
-          {/* 👉 Login Button */}
-          <div className="d-flex">
-            <Link href="/login" className="btn btn-warning fw-semibold px-4">
-              เข้าสู่ระบบ
-            </Link>
-          </div>
+        {/* LOGIN button (right on large screens only) */}
+        <div className="d-none d-lg-block">
+          <Link href="/login" className="btn btn-outline-warning fw-semibold">
+            LOGIN
+          </Link>
         </div>
       </div>
 
-      {/* 🎨 CSS */}
       <style jsx>{`
-        .bg-navbar {
-          background: linear-gradient(to right, #111111, #1c1c1c);
-        }
-
-        .text-glow {
-          color: white;
-          text-shadow: 0 0 8px #ffc107, 0 0 12px #ff9100;
-        }
-
         .nav-link {
-          transition: all 0.3s ease;
-          padding: 8px 14px;
+          font-weight: 500;
           font-size: 1rem;
+          transition: all 0.3s ease;
         }
 
         .nav-link:hover {
           color: #ffc107 !important;
           text-shadow: 0 0 8px #ffc107;
-        }
-
-        .btn-warning {
-          transition: box-shadow 0.3s ease;
-        }
-
-        .btn-warning:hover {
-          box-shadow: 0 0 10px #ffc107;
         }
       `}</style>
     </nav>
