@@ -3,19 +3,121 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import Select from "react-select";
 
 export default function RegisterForm() {
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstname, setFirstname] = useState(""); // คำนำหน้า
+  const [fullname, setFullname] = useState(""); // ชื่อจริง
+  const [lastname, setLastname] = useState("");
+  const [dob, setDob] = useState(""); // วันเกิด
+  const [address, setAddress] = useState(""); // ที่อยู่
+
   const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const prefixOptions = [
+    { value: "นาย", label: "นาย" },
+    { value: "นาง", label: "นาง" },
+    { value: "นางสาว", label: "นางสาว" },
+  ];
+
+  const inputVariants = {
+    focused: { scale: 1.02, boxShadow: "0 0 8px #ffc107" },
+    unfocused: { scale: 1, boxShadow: "none" },
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!acceptTerms) {
-      alert("โปรดยอมรับเงื่อนไขการใช้งานก่อนสมัครสมาชิก");
+      Swal.fire("กรุณายอมรับเงื่อนไขก่อนสมัครสมาชิก");
       return;
     }
-    alert("✅ สมัครสมาชิกเรียบร้อย!");
-    router.push("/login"); // ไปหน้า login หลังสมัคร
+
+    if (!firstname) {
+      Swal.fire("กรุณาเลือกคำนำหน้า");
+      return;
+    }
+    if (!fullname.trim()) {
+      Swal.fire("กรุณากรอกชื่อจริง");
+      return;
+    }
+    if (!lastname.trim()) {
+      Swal.fire("กรุณากรอกนามสกุล");
+      return;
+    }
+    if (!dob) {
+      Swal.fire("กรุณาระบุวันเกิด");
+      return;
+    }
+    if (!address.trim()) {
+      Swal.fire("กรุณาระบุที่อยู่");
+      return;
+    }
+    if (!username.trim()) {
+      Swal.fire("กรุณากรอกชื่อผู้ใช้ (อีเมล)");
+      return;
+    }
+    if (!password.trim()) {
+      Swal.fire("กรุณากรอกรหัสผ่าน");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://itdev.cmtc.ac.th:3000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          firstname,
+          fullname,
+          lastname,
+          dob,
+          address,
+          username,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "สมัครสมาชิกสำเร็จ",
+          text: "คุณสามารถเข้าสู่ระบบได้แล้ว",
+        });
+
+        // ล้างฟอร์ม
+        setUsername("");
+        setPassword("");
+        setFirstname("");
+        setFullname("");
+        setLastname("");
+        setDob("");
+        setAddress("");
+        setAcceptTerms(false);
+
+        router.push("/login");
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: data.message || "ไม่สามารถสมัครสมาชิกได้",
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "ข้อผิดพลาดเครือข่าย",
+        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+      });
+    }
   };
 
   const handleBackToLogin = () => {
@@ -23,108 +125,201 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="container px-3 py-5">
+    <div
+      className="d-flex justify-content-center align-items-start min-vh-100 py-5"
+      style={{
+        background: "radial-gradient(circle at top left, #15212b, #0b131a 90%)",
+        padding: "3rem",
+      }}
+    >
       <motion.div
-        className="row justify-content-center"
-        initial={{ opacity: 0, y: 20 }}
+        className="bg-dark rounded-4 shadow-lg p-5"
+        style={{ width: "90%", maxWidth: "700px" }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6 }}
       >
-        <div className="col-lg-8">
-          <div className="bg-white border rounded-4 shadow-sm p-5">
-            <h2 className="text-center text-success mb-5 fw-bold">สมัครสมาชิก</h2>
+        <h2
+          className="text-center fw-bold mb-5"
+          style={{ color: "#ffc107", letterSpacing: 2 }}
+        >
+          สมัครสมาชิก
+        </h2>
 
-            <form onSubmit={handleSubmit}>
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold">ชื่อผู้ใช้</label>
-                  <input type="text" className="form-control" required />
-                </div>
-                <div className="col-md-6 mt-3 mt-md-0">
-                  <label className="form-label fw-semibold">รหัสผ่าน</label>
-                  <input type="password" className="form-control" required />
-                </div>
-              </div>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-3"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "1rem 1.5rem",
+          }}
+        >
 
-              <div className="mb-4">
-                <label className="form-label fw-semibold">คำนำหน้าชื่อ</label>
-                <select className="form-select" required defaultValue="">
-                  <option value="" disabled>เลือกคำนำหน้า</option>
-                  <option>นาย</option>
-                  <option>นาง</option>
-                  <option>นางสาว</option>
-                </select>
-              </div>
-
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold">ชื่อ</label>
-                  <input type="text" className="form-control" required />
-                </div>
-                <div className="col-md-6 mt-3 mt-md-0">
-                  <label className="form-label fw-semibold">นามสกุล</label>
-                  <input type="text" className="form-control" required />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label fw-semibold">ที่อยู่</label>
-                <textarea className="form-control" rows={3} required></textarea>
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label fw-semibold me-3">เพศ</label>
-                <div className="form-check form-check-inline">
-                  <input type="radio" name="gender" className="form-check-input" id="male" required />
-                  <label className="form-check-label" htmlFor="male">ชาย</label>
-                </div>
-                <div className="form-check form-check-inline">
-                  <input type="radio" name="gender" className="form-check-input" id="female" required />
-                  <label className="form-check-label" htmlFor="female">หญิง</label>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label fw-semibold">วันเกิด</label>
-                <input type="date" className="form-control" required />
-              </div>
-
-              <div className="form-check mb-5">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="accept"
-                  checked={acceptTerms}
-                  onChange={() => setAcceptTerms(!acceptTerms)}
-                  required
-                />
-                <label className="form-check-label" htmlFor="accept">
-                  ยอมรับเงื่อนไขการใช้งาน
-                </label>
-              </div>
-
-              <div className="d-flex flex-column flex-md-row justify-content-between gap-3">
-                <motion.button
-                  type="submit"
-                  className="btn btn-success w-100 fw-semibold py-2 rounded-3"
-                  whileTap={{ scale: 0.97 }}
-                  disabled={!acceptTerms}
-                >
-                  สมัครสมาชิก
-                </motion.button>
-
-                <motion.button
-                  type="button"
-                  onClick={handleBackToLogin}
-                  className="btn btn-outline-primary w-100 fw-semibold py-2 rounded-3"
-                  whileTap={{ scale: 0.97 }}
-                >
-                  กลับเข้าสู่ระบบ
-                </motion.button>
-              </div>
-            </form>
+          <div>
+            <label className="form-label fw-semibold text-light">อีเมล / ชื่อผู้ใช้</label>
+            <motion.input
+              type="email"
+              placeholder="กรอกอีเมล / ชื่อผู้ใช้"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="form-control"
+              required
+              variants={inputVariants}
+              initial="unfocused"
+              whileFocus="focused"
+              transition={{ type: "spring", stiffness: 300 }}
+            />
           </div>
-        </div>
+
+          {/* รหัสผ่าน */}
+          <div>
+            <label className="form-label fw-semibold text-light">รหัสผ่าน</label>
+            <motion.input
+              type="password"
+              placeholder="กรอกรหัสผ่าน"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-control"
+              required
+              variants={inputVariants}
+              initial="unfocused"
+              whileFocus="focused"
+              transition={{ type: "spring", stiffness: 300 }}
+            />
+          </div>
+
+          {/* คำนำหน้า */}
+          <div style={{ gridColumn: "1 / 3" }}>
+            <label className="form-label fw-semibold text-light">คำนำหน้า</label>
+            <Select
+              options={prefixOptions}
+              value={prefixOptions.find((opt) => opt.value === firstname) || null}
+              onChange={(selected) => setFirstname(selected ? selected.value : "")}
+              placeholder="เลือกคำนำหน้า"
+              styles={{
+                control: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: "white",
+                  borderColor: state.isFocused ? "#ffc107" : "#ced4da",
+                  boxShadow: state.isFocused ? "0 0 6px rgba(255, 193, 7, 0.6)" : null,
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  minHeight: "44px",
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  borderRadius: 8,
+                  boxShadow: "0 0 10px rgba(255, 193, 7, 0.5)",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: state.isFocused ? "rgba(255, 193, 7, 0.2)" : "white",
+                  color: "black",
+                  cursor: "pointer",
+                }),
+                placeholder: (provided) => ({
+                  ...provided,
+                  color: "#6c757d",
+                }),
+              }}
+            />
+          </div>
+
+          {/* ชื่อจริง */}
+          <div>
+            <label className="form-label fw-semibold text-light">ชื่อจริง</label>
+            <input
+              type="text"
+              placeholder="ชื่อจริง"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              className="form-control"
+              required
+            />
+          </div>
+
+          {/* นามสกุล */}
+          <div>
+            <label className="form-label fw-semibold text-light">นามสกุล</label>
+            <input
+              type="text"
+              placeholder="นามสกุล"
+              value={lastname}
+              onChange={(e) => setLastname(e.target.value)}
+              className="form-control"
+              required
+            />
+          </div>
+
+          {/* วันเกิด */}
+          <div style={{ gridColumn: "1 / 3" }}>
+            <label className="form-label fw-semibold text-light">วันเกิด</label>
+            <input
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              className="form-control"
+              required
+            />
+          </div>
+
+          {/* ที่อยู่ */}
+          <div style={{ gridColumn: "1 / 3" }}>
+            <label className="form-label fw-semibold text-light">ที่อยู่</label>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="form-control"
+              rows={3}
+              placeholder="ระบุที่อยู่ของคุณ"
+              required
+            />
+          </div>
+          
+          {/* ยอมรับเงื่อนไข */}
+          <div style={{ gridColumn: "1 / 3" }} className="form-check mb-4">
+            <input
+              type="checkbox"
+              id="accept"
+              className="form-check-input"
+              checked={acceptTerms}
+              onChange={() => setAcceptTerms(!acceptTerms)}
+              required
+            />
+            <label
+              htmlFor="accept"
+              className="form-check-label text-light"
+              style={{ cursor: "pointer" }}
+            >
+              ยอมรับเงื่อนไขการใช้งาน
+            </label>
+          </div>
+
+          {/* ปุ่มสมัคร */}
+          <div style={{ gridColumn: "1 / 3" }}>
+            <button
+              type="submit"
+              disabled={!acceptTerms}
+              className={`btn btn-warning w-100 fw-semibold ${
+                acceptTerms ? "" : "opacity-50 cursor-not-allowed"
+              }`}
+            >
+              สมัครสมาชิก
+            </button>
+          </div>
+
+          {/* ปุ่มกลับเข้าสู่ระบบ */}
+          <div style={{ gridColumn: "1 / 3" }}>
+            <button
+              type="button"
+              onClick={handleBackToLogin}
+              className="btn btn-outline-warning w-100 mt-3"
+            >
+              กลับเข้าสู่ระบบ
+            </button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );

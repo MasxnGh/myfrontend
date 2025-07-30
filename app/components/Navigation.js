@@ -2,22 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function Navigation() {
   const pathname = usePathname();
 
-  const isActive = (href) =>
-    pathname === href ? "text-warning fw-semibold" : "text-white";
+  const links = [
+    { name: "HOME", href: "/" },
+    { name: "BRAND", href: "/brand" },
+    { name: "COLLECTION", href: "/collection" },
+    { name: "BLOG", href: "/blog" },
+    { name: "CONTACT", href: "/contact" },
+  ];
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-sm sticky-top">
+    <motion.nav
+      initial={{ y: -80 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 60 }}
+      className="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-lg sticky-top"
+    >
       <div className="container">
-        {/* Logo / Brand */}
-        <Link href="/" className="navbar-brand fs-4 fw-bold text-white">
-          MONDE
+        {/* Logo */}
+        <Link href="/" className="navbar-brand fs-3 fw-bold text-white">
+          <motion.span whileHover={{ scale: 1.1, color: "#ffc107" }}>MONDE</motion.span>
         </Link>
 
-        {/* Toggle button for mobile */}
+        {/* Toggler */}
         <button
           className="navbar-toggler"
           type="button"
@@ -30,35 +41,35 @@ export default function Navigation() {
           <span className="navbar-toggler-icon" />
         </button>
 
-        {/* Collapsible content */}
+        {/* Links */}
         <div className="collapse navbar-collapse justify-content-center" id="mainNavbar">
-          <ul className="navbar-nav gap-lg-4 text-center">
-            <li className="nav-item">
-              <Link href="/" className={`nav-link ${isActive("/")}`}>
-                HOME
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link href="/brand" className={`nav-link ${isActive("/brand")}`}>
-                BRAND
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link href="/collection" className={`nav-link ${isActive("/collection")}`}>
-                COLLECTION
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link href="/blog" className={`nav-link ${isActive("/blog")}`}>
-                BLOG
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link href="/contact" className={`nav-link ${isActive("/contact")}`}>
-                CONTACT
-              </Link>
-            </li>
-            {/* LOGIN shown even on mobile */}
+          <ul className="navbar-nav gap-lg-4 text-center position-relative">
+            {links.map(({ name, href }) => (
+              <li key={href} className="nav-item position-relative">
+                <Link
+                  href={href}
+                  className={`nav-link ${pathname === href ? "text-warning fw-bold" : "text-white"}`}
+                >
+                  <motion.span whileHover={{ scale: 1.1 }}>{name}</motion.span>
+                  {pathname === href && (
+                    <motion.div
+                      layoutId="underline"
+                      className="underline"
+                      style={{
+                        position: "absolute",
+                        height: "2px",
+                        backgroundColor: "#ffc107",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                      }}
+                    />
+                  )}
+                </Link>
+              </li>
+            ))}
+
+            {/* Mobile Login */}
             <li className="nav-item d-lg-none">
               <Link href="/login" className="nav-link text-warning fw-semibold">
                 LOGIN
@@ -67,14 +78,17 @@ export default function Navigation() {
           </ul>
         </div>
 
-        {/* LOGIN button (right on large screens only) */}
+        {/* Desktop Login */}
         <div className="d-none d-lg-block">
-          <Link href="/login" className="btn btn-outline-warning fw-semibold">
-            LOGIN
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Link href="/login" className="btn btn-outline-warning fw-semibold shadow-sm px-4">
+              LOGIN
+            </Link>
+          </motion.div>
         </div>
       </div>
 
+      {/* Custom Style */}
       <style jsx>{`
         .nav-link {
           font-weight: 500;
@@ -84,9 +98,15 @@ export default function Navigation() {
 
         .nav-link:hover {
           color: #ffc107 !important;
-          text-shadow: 0 0 8px #ffc107;
+          text-shadow: 0 0 6px #ffc107;
+        }
+
+        .underline {
+          border-radius: 9999px;
+          height: 3px;
+          background-color: #ffc107;
         }
       `}</style>
-    </nav>
+    </motion.nav>
   );
 }
