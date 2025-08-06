@@ -66,6 +66,15 @@ export default function RegisterForm() {
       return;
     }
 
+    // แปลง dob เป็น ISO 8601 (ถ้า dob ไม่ใช่รูปแบบนี้)
+    let dobISO = dob;
+    try {
+      dobISO = new Date(dob).toISOString();
+      console.log("Converted dob to ISO:", dobISO);
+    } catch (error) {
+      console.warn("Error converting dob to ISO format:", error);
+    }
+
     try {
       const res = await fetch("http://itdev.cmtc.ac.th:3000/api/users", {
         method: "POST",
@@ -77,7 +86,7 @@ export default function RegisterForm() {
           firstname,
           fullname,
           lastname,
-          dob,
+          dob: dobISO,
           address,
           username,
           password,
@@ -85,6 +94,7 @@ export default function RegisterForm() {
       });
 
       const data = await res.json();
+      console.log("API response:", data);
 
       if (res.ok) {
         Swal.fire({
@@ -117,6 +127,7 @@ export default function RegisterForm() {
         title: "ข้อผิดพลาดเครือข่าย",
         text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
       });
+      console.error("Network error:", error);
     }
   };
 
@@ -155,9 +166,10 @@ export default function RegisterForm() {
             gap: "1rem 1.5rem",
           }}
         >
-
           <div>
-            <label className="form-label fw-semibold text-light">อีเมล / ชื่อผู้ใช้</label>
+            <label className="form-label fw-semibold text-light">
+              อีเมล / ชื่อผู้ใช้
+            </label>
             <motion.input
               type="email"
               placeholder="กรอกอีเมล / ชื่อผู้ใช้"
@@ -195,14 +207,18 @@ export default function RegisterForm() {
             <Select
               options={prefixOptions}
               value={prefixOptions.find((opt) => opt.value === firstname) || null}
-              onChange={(selected) => setFirstname(selected ? selected.value : "")}
+              onChange={(selected) =>
+                setFirstname(selected ? selected.value : "")
+              }
               placeholder="เลือกคำนำหน้า"
               styles={{
                 control: (provided, state) => ({
                   ...provided,
                   backgroundColor: "white",
                   borderColor: state.isFocused ? "#ffc107" : "#ced4da",
-                  boxShadow: state.isFocused ? "0 0 6px rgba(255, 193, 7, 0.6)" : null,
+                  boxShadow: state.isFocused
+                    ? "0 0 6px rgba(255, 193, 7, 0.6)"
+                    : null,
                   borderRadius: 8,
                   cursor: "pointer",
                   minHeight: "44px",
@@ -214,7 +230,9 @@ export default function RegisterForm() {
                 }),
                 option: (provided, state) => ({
                   ...provided,
-                  backgroundColor: state.isFocused ? "rgba(255, 193, 7, 0.2)" : "white",
+                  backgroundColor: state.isFocused
+                    ? "rgba(255, 193, 7, 0.2)"
+                    : "white",
                   color: "black",
                   cursor: "pointer",
                 }),
@@ -276,9 +294,12 @@ export default function RegisterForm() {
               required
             />
           </div>
-          
+
           {/* ยอมรับเงื่อนไข */}
-          <div style={{ gridColumn: "1 / 3" }} className="form-check mb-4">
+          <div
+            style={{ gridColumn: "1 / 3" }}
+            className="form-check mb-4"
+          >
             <input
               type="checkbox"
               id="accept"

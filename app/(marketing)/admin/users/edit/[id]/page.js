@@ -1,11 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from 'next/link';
-import Admin from "@/app/components/Admin";
-export default function admin() {
+import EditForm from "@/app/components/EditForm";
+export default function edit() {
   return (
     <>
-    <Admin />
+    <EditForm />
     </>  
   );
 }   

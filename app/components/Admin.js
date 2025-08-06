@@ -1,0 +1,149 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
+
+export default function admin() {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    async function getUsers() {
+      try {
+        const res = await fetch('http://itdev.cmtc.ac.th:3000/api/users');
+        if (!res.ok) {
+          console.error('Failed to fetch data');
+          return;
+        }
+        const data = await res.json();
+        setItems(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    getUsers();
+    const interval = setInterval(getUsers, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: 'ยืนยันการลบ',
+      text: 'คุณต้องการลบผู้ใช้นี้ใช่หรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบ',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      customClass: {
+        popup: 'swal2-border-radius',
+      },
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`http://itdev.cmtc.ac.th:3000/api/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        const resultData = await res.json();
+
+        if (res.ok) {
+          MySwal.fire('ลบสำเร็จ', 'ข้อมูลผู้ใช้ถูกลบเรียบร้อยแล้ว', 'success');
+          setItems((prev) => prev.filter((item) => item.id !== id));
+        } else {
+          MySwal.fire('ผิดพลาด', resultData.message || 'ไม่สามารถลบผู้ใช้ได้', 'error');
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        MySwal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการลบผู้ใช้', 'error');
+      }
+    }
+  };
+
+  return (
+    <>
+      <br /><br /><br /><br />
+      <div className="container" style={{ maxWidth: '1200px' }}>
+        <div className="card shadow-sm border-0">
+          <div className="card-header bg-warning text-white fw-bold fs-5">
+            รายชื่อสมาชิก (Users List)
+          </div>
+          <div className="card-body">
+            <div className="table-responsive">
+              <table className="table table-striped table-hover align-middle">
+                <thead className="table-dark">
+                  <tr>
+                    <th className="text-center" style={{ width: '4%' }}>#</th>
+                    <th style={{ width: '10%' }}>คำนำหน้า</th>
+                    <th style={{ width: '15%' }}>ชื่อ</th>
+                    <th style={{ width: '15%' }}>นามสกุล</th>
+                    <th style={{ width: '20%' }}>อีเมล</th>
+                    <th style={{ width: '20%' }}>ที่อยู่</th>
+                    <th style={{ width: '10%' }}>วันเกิด</th>
+                    <th style={{ width: '8%' }}>แก้ไข</th>
+                    <th style={{ width: '8%' }}>ลบ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.length > 0 ? (
+                    items.map((item) => (
+                      <tr key={item.id}>
+                        <td className="text-center">{item.id}</td>
+                        <td>{item.firstname}</td>
+                        <td>{item.fullname}</td>
+                        <td>{item.lastname}</td>
+                        <td>{item.username}</td>
+                        <td>{item.address}</td>
+                        <td>
+                          {item.dob
+                            ? new Date(item.dob).toLocaleDateString('th-TH', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })
+                            : '-'}
+                        </td>
+                        <td>
+                          <Link href={`/admin/users/edit/${item.id}`} className="btn btn-sm btn-warning fw-semibold">
+                            Edit
+                          </Link>
+                        </td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-danger fw-semibold"
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            Del
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="10" className="text-center text-muted py-4">
+                        กำลังโหลดข้อมูล...
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br /><br />
+    </>
+  );
+}
