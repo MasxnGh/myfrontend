@@ -7,7 +7,7 @@ import Select from "react-select";
 
 export default function EditUserPage() {
   const router = useRouter();
-  const params = useParams(); // ดึง param จาก URL
+  const params = useParams();
   const { id } = params;
 
   const prefixOptions = [
@@ -23,11 +23,11 @@ export default function EditUserPage() {
     dob: "",
     address: "",
     username: "",
-    password: "",
+    password: "", // รหัสผ่านใหม่ (ถ้าไม่กรอก = ไม่เปลี่ยน)
   });
 
   useEffect(() => {
-    if (!id) return; // รอ id มาก่อน
+    if (!id) return;
 
     async function fetchUser() {
       try {
@@ -40,10 +40,10 @@ export default function EditUserPage() {
           firstname: user.firstname || "",
           fullname: user.fullname || "",
           lastname: user.lastname || "",
-          dob: user.dob || "",
+          dob: user.dob ? user.dob.split("T")[0] : "", // ตัดเวลาออก
           address: user.address || "",
           username: user.username || "",
-          password: user.password || "",
+          password: "", // ไม่ตั้งรหัสผ่านตอนโหลดข้อมูล
         });
       } catch (error) {
         Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลได้", "error");
@@ -56,17 +56,33 @@ export default function EditUserPage() {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
 
+    // ตรวจสอบข้อมูลทั่วไป
     if (
       !userData.firstname ||
       !userData.fullname.trim() ||
       !userData.lastname.trim() ||
       !userData.dob ||
       !userData.address.trim() ||
-      !userData.username.trim() ||
-      !userData.password.trim()
+      !userData.username.trim()
     ) {
       Swal.fire("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
+    }
+
+    // เตรียมข้อมูลที่จะส่งอัปเดต
+    const payload = {
+      id,
+      firstname: userData.firstname,
+      fullname: userData.fullname,
+      lastname: userData.lastname,
+      dob: userData.dob,
+      address: userData.address,
+      username: userData.username,
+    };
+
+    // ถ้ามีกรอกรหัสผ่านใหม่ ให้ส่งรหัสผ่านนี้ไปเปลี่ยน
+    if (userData.password.trim() !== "") {
+      payload.password = userData.password;
     }
 
     try {
@@ -76,14 +92,14 @@ export default function EditUserPage() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ id, ...userData }),
+        body: JSON.stringify(payload),
       });
 
       const result = await res.json();
 
       if (res.ok) {
         Swal.fire("สำเร็จ", "อัปเดตข้อมูลแล้ว", "success");
-        router.push("/"); // เปลี่ยนเป็น path ที่ต้องการ
+        router.push("/"); // หรือ path ที่ต้องการให้ไปหลังแก้ไขเสร็จ
       } else {
         Swal.fire("ผิดพลาด", result.message || "ไม่สามารถอัปเดตได้", "error");
       }
@@ -98,10 +114,7 @@ export default function EditUserPage() {
       style={{ background: "#0b131a", padding: "3rem" }}
     >
       <div className="bg-dark rounded-4 shadow-lg p-5" style={{ width: "90%", maxWidth: "700px" }}>
-        <h2
-          className="text-center fw-bold mb-5"
-          style={{ color: "#ffc107", letterSpacing: 2 }}
-        >
+        <h2 className="text-center fw-bold mb-5" style={{ color: "#ffc107", letterSpacing: 2 }}>
           แก้ไขข้อมูลผู้ใช้
         </h2>
 
@@ -116,7 +129,7 @@ export default function EditUserPage() {
           <div style={{ gridColumn: "1 / 3" }}>
             <label className="form-label fw-semibold text-light">คำนำหน้า</label>
             <Select
-              instanceId="prefix-select" // เพิ่มตรงนี้แก้ hydration mismatch
+              instanceId="prefix-select"
               options={prefixOptions}
               value={prefixOptions.find((opt) => opt.value === userData.firstname) || null}
               onChange={(selected) =>
@@ -211,13 +224,13 @@ export default function EditUserPage() {
           </div>
 
           <div>
-            <label className="form-label fw-semibold text-light">รหัสผ่าน</label>
+            <label className="form-label fw-semibold text-light">รหัสผ่าน (เว้นว่างถ้าไม่เปลี่ยน)</label>
             <input
               type="password"
               className="form-control"
+              placeholder="กรอกรหัสผ่านใหม่ถ้าต้องการเปลี่ยน"
               value={userData.password}
               onChange={(e) => setUserData({ ...userData, password: e.target.value })}
-              required
             />
           </div>
 

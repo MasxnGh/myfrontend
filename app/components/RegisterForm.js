@@ -11,7 +11,7 @@ export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [firstname, setFirstname] = useState(""); // คำนำหน้า
-  const [fullname, setFullname] = useState(""); // ชื่อจริง
+  const [fullname, setFullname] = useState(""); // ชื่อจริง 
   const [lastname, setLastname] = useState("");
   const [dob, setDob] = useState(""); // วันเกิด
   const [address, setAddress] = useState(""); // ที่อยู่
