@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from 'next/link';
-import LoginForm from "@/app/components/LoginForm";
+import Signin from "@/app/components/Signin";
 export default function Login() {
   return (
     <>
-    <LoginForm />
+    <Signin />
   </>
   );
 }

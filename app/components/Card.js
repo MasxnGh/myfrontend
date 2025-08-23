@@ -27,23 +27,26 @@ export default function Card() {
 
   return (
     <div className="container py-5">
+      {/* หัวข้อ */}
+      <h3 className="fw-bold fst-italic mb-4 section-title">
+        Our Popular Products
+      </h3>
+
       <div className="row g-5 justify-content-center">
         {cards.map((card, idx) => (
           <div className="col-12 col-sm-6 col-md-4" key={idx}>
             <div className="card card-float h-100 d-flex flex-column">
               <div className="card-img-wrapper">
-                <img
-                  src={card.img}
-                  alt={card.title}
-                  loading="lazy"
-                />
+                <img src={card.img} alt={card.title} loading="lazy" />
               </div>
               <div className="card-body d-flex flex-column flex-grow-1 px-0 pt-3 text-center">
                 <h5 className="card-title">{card.title}</h5>
                 <p className="card-text">{card.text}</p>
                 <div className="mt-auto pt-2">
-                  <small className="text-muted d-block mb-3">{card.updated}</small>
-                  <a href={card.ctaLink} className="btn btn-outline-warning btn-sm shadow-sm">
+                  <a
+                    href={card.ctaLink}
+                    className="btn btn-outline-warning btn-sm shadow-sm"
+                  >
                     {card.ctaText}
                   </a>
                 </div>
@@ -54,6 +57,12 @@ export default function Card() {
       </div>
 
       <style jsx>{`
+        .section-title {
+          border-bottom: 2px solid #000;
+          display: inline-block;
+          padding-bottom: 4px;
+        }
+        /* สไตล์การ์ดเดิมของคุณ */
         .card-float {
           background: transparent;
           box-shadow: none;
@@ -122,7 +131,6 @@ export default function Card() {
           box-shadow: 0 8px 20px rgba(255, 193, 7, 0.6);
           transform: translateY(-3px);
         }
-
         @media (max-width: 576px) {
           .card-img-wrapper {
             height: 220px;

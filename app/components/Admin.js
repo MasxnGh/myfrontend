@@ -1,149 +1,160 @@
 'use client';
-
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
 
-const MySwal = withReactContent(Swal);
-
-export default function admin() {
+export default function User() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/signin');
+      return;
+    }
+
     async function getUsers() {
       try {
-        const res = await fetch('http://itdev.cmtc.ac.th:3000/api/users');
-        if (!res.ok) {
-          console.error('Failed to fetch data');
-          return;
-        }
+        const res = await fetch('https://backend-nextjs-virid.vercel.app/api/users');
+        if (!res.ok) return;
         const data = await res.json();
         setItems(data);
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error(error);
+        setLoading(false);
       }
     }
 
     getUsers();
-    const interval = setInterval(getUsers, 1000);
+    const interval = setInterval(getUsers, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: 'ยืนยันการลบ',
-      text: 'คุณต้องการลบผู้ใช้นี้ใช่หรือไม่?',
+    const confirm = await Swal.fire({
       icon: 'warning',
+      title: 'Are you sure?',
+      text: 'You will delete this user permanently!',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'ลบ',
-      cancelButtonText: 'ยกเลิก',
-      reverseButtons: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      customClass: {
-        popup: 'swal2-border-radius',
-      },
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      background: '#222',          // dark theme
+      color: '#fff',
+      confirmButtonColor: '#ffc107',
+      cancelButtonColor: '#555',
     });
 
-    if (result.isConfirmed) {
-      try {
-        const res = await fetch(`http://itdev.cmtc.ac.th:3000/api/users/${id}`, {
-          method: 'DELETE',
-          headers: {
-            Accept: 'application/json',
-          },
-        });
-        const resultData = await res.json();
+    if (!confirm.isConfirmed) return;
 
-        if (res.ok) {
-          MySwal.fire('ลบสำเร็จ', 'ข้อมูลผู้ใช้ถูกลบเรียบร้อยแล้ว', 'success');
-          setItems((prev) => prev.filter((item) => item.id !== id));
-        } else {
-          MySwal.fire('ผิดพลาด', resultData.message || 'ไม่สามารถลบผู้ใช้ได้', 'error');
-        }
-      } catch (error) {
-        console.error('Error deleting user:', error);
-        MySwal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการลบผู้ใช้', 'error');
-      }
+    try {
+      const res = await fetch(`https://backend-nextjs-virid.vercel.app/api/users/${id}`, {
+        method: 'DELETE',
+        headers: { Accept: 'application/json' },
+      });
+      const result = await res.json();
+      Swal.fire({
+        title: 'Deleted!',
+        text: result.message || 'User deleted',
+        icon: 'success',
+        background: '#222',
+        color: '#fff',
+        confirmButtonColor: '#ffc107'
+      });
+      setItems(items.filter(user => user.id !== id));
+    } catch (error) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Could not delete user',
+        icon: 'error',
+        background: '#222',
+        color: '#fff',
+        confirmButtonColor: '#ffc107'
+      });
     }
   };
 
+  if (loading) {
+    return (
+      <div className='min-vh-100 d-flex justify-content-center align-items-center' style={{ backgroundColor: '#1a1a1a' }}>
+        <h3 style={{ color: '#ffc107' }}>Loading Users...</h3>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <br /><br /><br /><br />
-      <div className="container" style={{ maxWidth: '1200px' }}>
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-warning text-white fw-bold fs-5">
-            รายชื่อสมาชิก (Users List)
-          </div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-striped table-hover align-middle">
-                <thead className="table-dark">
-                  <tr>
-                    <th className="text-center" style={{ width: '4%' }}>#</th>
-                    <th style={{ width: '10%' }}>คำนำหน้า</th>
-                    <th style={{ width: '15%' }}>ชื่อ</th>
-                    <th style={{ width: '15%' }}>นามสกุล</th>
-                    <th style={{ width: '20%' }}>อีเมล</th>
-                    <th style={{ width: '20%' }}>ที่อยู่</th>
-                    <th style={{ width: '10%' }}>วันเกิด</th>
-                    <th style={{ width: '8%' }}>แก้ไข</th>
-                    <th style={{ width: '8%' }}>ลบ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.length > 0 ? (
-                    items.map((item) => (
-                      <tr key={item.id}>
-                        <td className="text-center">{item.id}</td>
-                        <td>{item.firstname}</td>
-                        <td>{item.fullname}</td>
-                        <td>{item.lastname}</td>
-                        <td>{item.username}</td>
-                        <td>{item.address}</td>
-                        <td>
-                          {item.dob
-                            ? new Date(item.dob).toLocaleDateString('th-TH', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                              })
-                            : '-'}
-                        </td>
-                        <td>
-                          <Link href={`/admin/users/edit/${item.id}`} className="btn btn-sm btn-warning fw-semibold">
-                            Edit
-                          </Link>
-                        </td>
-                        <td>
-                          <button
-                            className="btn btn-sm btn-danger fw-semibold"
-                            type="button"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            Del
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="10" className="text-center text-muted py-4">
-                        กำลังโหลดข้อมูล...
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+    <div className="min-vh-100" style={{ backgroundColor: '#1a1a1a', padding: '3rem 1rem' }}>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="card shadow-lg rounded-4 border-0 mx-auto"
+        style={{ maxWidth: '1200px', backgroundColor: '#222' }}
+      >
+        <div className="card-header text-center fs-4 fw-bold" style={{ backgroundColor: '#333', color: '#ffc107' }}>
+          Users List
+        </div>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-striped mb-0 align-middle text-center" style={{ color: '#fff' }}>
+              <thead style={{ backgroundColor: '#333' }}>
+                <tr>
+                  <th>#</th>
+                  <th>Firstname</th>
+                  <th>Fullname</th>
+                  <th>Lastname</th>
+                  <th>Username</th>
+                  <th>Address</th>
+                  <th>Sex</th>
+                  <th>Birthday</th>
+                  <th>Edit</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ borderBottom: '1px solid #444' }}
+                  >
+                    <td>{item.id}</td>
+                    <td>{item.firstname}</td>
+                    <td>{item.fullname}</td>
+                    <td>{item.lastname}</td>
+                    <td>{item.username}</td>
+                    <td>{item.address}</td>
+                    <td>{item.sex}</td>
+                    <td>{item.birthday}</td>
+                    <td>
+                      <Link href={`/admin/users/edit/${item.id}`}>
+                        <button className="btn btn-warning btn-sm fw-semibold" style={{ fontWeight: 500 }}>
+                          Edit
+                        </button>
+                      </Link>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm fw-semibold"
+                        style={{ fontWeight: 500 }}
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
-      <br /><br />
-    </>
+      </motion.div>
+    </div>
   );
 }

@@ -1,52 +1,58 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Swal from "sweetalert2";
-import Select from "react-select";
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Swal from 'sweetalert2';
+import Select from 'react-select';
+import { motion } from 'framer-motion';
+import bcrypt from 'bcryptjs';
 
 export default function EditUserPage() {
   const router = useRouter();
-  const params = useParams();
-  const { id } = params;
+  const { id } = useParams();
 
   const prefixOptions = [
-    { value: "นาย", label: "นาย" },
-    { value: "นาง", label: "นาง" },
-    { value: "นางสาว", label: "นางสาว" },
+    { value: 'นาย', label: 'นาย' },
+    { value: 'นาง', label: 'นาง' },
+    { value: 'นางสาว', label: 'นางสาว' },
   ];
 
   const [userData, setUserData] = useState({
-    firstname: "",
-    fullname: "",
-    lastname: "",
-    dob: "",
-    address: "",
-    username: "",
-    password: "", // รหัสผ่านใหม่ (ถ้าไม่กรอก = ไม่เปลี่ยน)
+    firstname: '',
+    fullname: '',
+    lastname: '',
+    dob: '',
+    address: '',
+    username: '',
+    password: '',
   });
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
 
     async function fetchUser() {
       try {
-        const res = await fetch(`http://itdev.cmtc.ac.th:3000/api/users/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch user");
+        const res = await fetch(`https://backend-nextjs-virid.vercel.app/api/users/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch user');
         const data = await res.json();
         const user = Array.isArray(data) ? data[0] : data;
 
         setUserData({
-          firstname: user.firstname || "",
-          fullname: user.fullname || "",
-          lastname: user.lastname || "",
-          dob: user.dob ? user.dob.split("T")[0] : "", // ตัดเวลาออก
-          address: user.address || "",
-          username: user.username || "",
-          password: "", // ไม่ตั้งรหัสผ่านตอนโหลดข้อมูล
+          firstname: user.firstname || '',
+          fullname: user.fullname || '',
+          lastname: user.lastname || '',
+          dob: user.dob ? user.dob.split('T')[0] : '',
+          address: user.address || '',
+          username: user.username || '',
+          password: '',
         });
+
+        setLoading(false);
       } catch (error) {
-        Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลได้", "error");
+        console.error(error);
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้', 'error');
+        setLoading(false);
       }
     }
 
@@ -56,191 +62,201 @@ export default function EditUserPage() {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
 
-    // ตรวจสอบข้อมูลทั่วไป
-    if (
-      !userData.firstname ||
-      !userData.fullname.trim() ||
-      !userData.lastname.trim() ||
-      !userData.dob ||
-      !userData.address.trim() ||
-      !userData.username.trim()
-    ) {
-      Swal.fire("กรุณากรอกข้อมูลให้ครบถ้วน");
+    if (!userData.firstname || !userData.fullname || !userData.lastname || !userData.address || !userData.username) {
+      Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน');
       return;
     }
 
-    // เตรียมข้อมูลที่จะส่งอัปเดต
-    const payload = {
-      id,
-      firstname: userData.firstname,
-      fullname: userData.fullname,
-      lastname: userData.lastname,
-      dob: userData.dob,
-      address: userData.address,
-      username: userData.username,
-    };
+    const payload = { id, ...userData };
 
-    // ถ้ามีกรอกรหัสผ่านใหม่ ให้ส่งรหัสผ่านนี้ไปเปลี่ยน
-    if (userData.password.trim() !== "") {
-      payload.password = userData.password;
+    if (userData.password.trim() !== '') {
+      const salt = bcrypt.genSaltSync(10);
+      const hashedPassword = bcrypt.hashSync(userData.password, salt);
+      payload.password = hashedPassword;
+    } else {
+      delete payload.password;
     }
 
+    if (!payload.dob) delete payload.dob;
+
     try {
-      const res = await fetch("http://itdev.cmtc.ac.th:3000/api/users", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+      const res = await fetch('https://backend-nextjs-virid.vercel.app/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const result = await res.json();
-
       if (res.ok) {
-        Swal.fire("สำเร็จ", "อัปเดตข้อมูลแล้ว", "success");
-        router.push("/"); // หรือ path ที่ต้องการให้ไปหลังแก้ไขเสร็จ
+        Swal.fire({
+          title: 'สำเร็จ',
+          text: 'อัปเดตข้อมูลแล้ว',
+          icon: 'success',
+          background: '#1a1a1a',
+          color: '#FFD700',
+          confirmButtonColor: '#FFD700',
+        });
+        router.push('/admin/users');
       } else {
-        Swal.fire("ผิดพลาด", result.message || "ไม่สามารถอัปเดตได้", "error");
+        Swal.fire({
+          title: 'ผิดพลาด',
+          text: result.message || 'ไม่สามารถอัปเดตได้',
+          icon: 'error',
+          background: '#1a1a1a',
+          color: '#FFD700',
+          confirmButtonColor: '#FFD700',
+        });
       }
     } catch (error) {
-      Swal.fire("เครือข่ายผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์", "error");
+      Swal.fire({
+        title: 'เครือข่ายผิดพลาด',
+        text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์',
+        icon: 'error',
+        background: '#1a1a1a',
+        color: '#FFD700',
+        confirmButtonColor: '#FFD700',
+      });
     }
   };
 
+  const motionItem = (delay = 0) => ({
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5, delay },
+  });
+
+  if (loading) return <div className="text-center mt-5 text-warning">Loading user data...</div>;
+
   return (
-    <div
+    <motion.div
       className="d-flex justify-content-center align-items-start min-vh-100 py-5"
-      style={{ background: "#0b131a", padding: "3rem" }}
+      style={{ background: 'linear-gradient(145deg, #0b131a, #1a1f28)' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
     >
-      <div className="bg-dark rounded-4 shadow-lg p-5" style={{ width: "90%", maxWidth: "700px" }}>
-        <h2 className="text-center fw-bold mb-5" style={{ color: "#ffc107", letterSpacing: 2 }}>
-          แก้ไขข้อมูลผู้ใช้
-        </h2>
+      <motion.form
+        onSubmit={handleUpdateSubmit}
+        className="bg-dark text-white p-5 rounded-4 shadow-lg"
+        style={{ width: '100%', maxWidth: '700px' }}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.h2 className="text-center text-warning fw-bold mb-4" {...motionItem(0)}>
+          ✏️ แก้ไขข้อมูลผู้ใช้
+        </motion.h2>
 
-        <form
-          onSubmit={handleUpdateSubmit}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "1rem 1.5rem",
-          }}
-        >
-          <div style={{ gridColumn: "1 / 3" }}>
-            <label className="form-label fw-semibold text-light">คำนำหน้า</label>
-            <Select
-              instanceId="prefix-select"
-              options={prefixOptions}
-              value={prefixOptions.find((opt) => opt.value === userData.firstname) || null}
-              onChange={(selected) =>
-                setUserData((prev) => ({
-                  ...prev,
-                  firstname: selected ? selected.value : "",
-                }))
-              }
-              placeholder="เลือกคำนำหน้า"
-              styles={{
-                control: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: "white",
-                  borderColor: state.isFocused ? "#ffc107" : "#ced4da",
-                  boxShadow: state.isFocused ? "0 0 6px rgba(255, 193, 7, 0.6)" : null,
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  minHeight: "44px",
-                }),
-                menu: (provided) => ({
-                  ...provided,
-                  borderRadius: 8,
-                  boxShadow: "0 0 10px rgba(255, 193, 7, 0.5)",
-                }),
-                option: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: state.isFocused ? "rgba(255, 193, 7, 0.2)" : "white",
-                  color: "black",
-                  cursor: "pointer",
-                }),
-                placeholder: (provided) => ({
-                  ...provided,
-                  color: "#6c757d",
-                }),
-              }}
-            />
-          </div>
+        <motion.div className="mb-3" {...motionItem(0.1)}>
+          <label className="form-label text-warning">คำนำหน้า</label>
+          <Select
+            instanceId="prefix-select"
+            options={prefixOptions}
+            value={prefixOptions.find(opt => opt.value === userData.firstname) || null}
+            onChange={selected => setUserData(prev => ({ ...prev, firstname: selected?.value || '' }))}
+            isSearchable={false}
+            styles={{
+              control: (base, state) => ({
+                ...base,
+                backgroundColor: '#2c3646',
+                borderColor: state.isFocused ? '#FFD700' : '#4b5563',
+                boxShadow: state.isFocused ? '0 0 8px rgba(255,215,0,0.6)' : 'none',
+                borderRadius: '10px',
+                minHeight: '46px',
+                color: '#fff',
+              }),
+              menu: (base) => ({ ...base, borderRadius: '10px', backgroundColor: '#2c3646' }),
+              option: (base, state) => ({
+                ...base,
+                backgroundColor: state.isFocused
+                  ? '#FFD700'
+                  : state.isSelected
+                  ? '#FFC107'
+                  : '#2c3646',
+                color: state.isFocused || state.isSelected ? '#1f1f1f' : '#fff',
+                cursor: 'pointer',
+                fontWeight: state.isSelected ? 600 : 400,
+              }),
+              singleValue: (base) => ({ ...base, color: '#FFD700', fontWeight: 600 }),
+              placeholder: (base) => ({ ...base, color: '#ccc' }),
+            }}
+          />
+        </motion.div>
 
-          <div>
-            <label className="form-label fw-semibold text-light">ชื่อจริง</label>
+        <div className="row g-3">
+          <motion.div className="col-md-6" {...motionItem(0.2)}>
+            <label className="form-label text-warning">ชื่อจริง</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
               value={userData.fullname}
-              onChange={(e) => setUserData({ ...userData, fullname: e.target.value })}
-              required
+              onChange={e => setUserData({ ...userData, fullname: e.target.value })}
             />
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="form-label fw-semibold text-light">นามสกุล</label>
+          <motion.div className="col-md-6" {...motionItem(0.3)}>
+            <label className="form-label text-warning">นามสกุล</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
               value={userData.lastname}
-              onChange={(e) => setUserData({ ...userData, lastname: e.target.value })}
-              required
+              onChange={e => setUserData({ ...userData, lastname: e.target.value })}
             />
-          </div>
+          </motion.div>
 
-          <div style={{ gridColumn: "1 / 3" }}>
-            <label className="form-label fw-semibold text-light">วันเกิด</label>
+          <motion.div className="col-md-6" {...motionItem(0.4)}>
+            <label className="form-label text-warning">วันเกิด (เว้นว่างถ้าไม่เปลี่ยน)</label>
             <input
               type="date"
-              className="form-control"
+              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
               value={userData.dob}
-              onChange={(e) => setUserData({ ...userData, dob: e.target.value })}
-              required
+              onChange={e => setUserData({ ...userData, dob: e.target.value })}
             />
-          </div>
+          </motion.div>
 
-          <div style={{ gridColumn: "1 / 3" }}>
-            <label className="form-label fw-semibold text-light">ที่อยู่</label>
+          <motion.div className="col-md-6" {...motionItem(0.5)}>
+            <label className="form-label text-warning">อีเมล / ชื่อผู้ใช้</label>
+            <input
+              type="text"
+              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              value={userData.username}
+              onChange={e => setUserData({ ...userData, username: e.target.value })}
+              placeholder="กรอกอีเมล หรือชื่อผู้ใช้"
+            />
+          </motion.div>
+
+          <motion.div className="col-12" {...motionItem(0.6)}>
+            <label className="form-label text-warning">ที่อยู่</label>
             <textarea
-              className="form-control"
+              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
               rows={3}
               value={userData.address}
-              onChange={(e) => setUserData({ ...userData, address: e.target.value })}
-              required
+              onChange={e => setUserData({ ...userData, address: e.target.value })}
             />
-          </div>
+          </motion.div>
 
-          <div>
-            <label className="form-label fw-semibold text-light">อีเมล / ชื่อผู้ใช้</label>
-            <input
-              type="email"
-              className="form-control"
-              value={userData.username}
-              onChange={(e) => setUserData({ ...userData, username: e.target.value })}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="form-label fw-semibold text-light">รหัสผ่าน (เว้นว่างถ้าไม่เปลี่ยน)</label>
+          <motion.div className="col-12" {...motionItem(0.7)}>
+            <label className="form-label text-warning">รหัสผ่าน (เว้นว่างถ้าไม่เปลี่ยน)</label>
             <input
               type="password"
-              className="form-control"
+              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
               placeholder="กรอกรหัสผ่านใหม่ถ้าต้องการเปลี่ยน"
               value={userData.password}
-              onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+              onChange={e => setUserData({ ...userData, password: e.target.value })}
             />
-          </div>
+          </motion.div>
+        </div>
 
-          <div style={{ gridColumn: "1 / 3" }}>
-            <button type="submit" className="btn btn-warning w-100 fw-semibold">
-              อัปเดตข้อมูล
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <motion.div className="mt-4" {...motionItem(0.8)}>
+          <button
+            type="submit"
+            className="btn w-100 fw-bold"
+            style={{ background: 'linear-gradient(135deg, #FFD700, #FFB800)', color: '#1f1f1f' }}
+          >
+            อัปเดตข้อมูล
+          </button>
+        </motion.div>
+      </motion.form>
+    </motion.div>
   );
 }
