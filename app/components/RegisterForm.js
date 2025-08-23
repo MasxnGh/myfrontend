@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import dynamic from "next/dynamic";
 
-// ใช้ react-select แบบ client-side only
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
 export default function RegisterForm() {
@@ -28,13 +27,12 @@ export default function RegisterForm() {
   ];
 
   const inputVariants = {
-    focused: { scale: 1.02, boxShadow: "0 0 10px #FFD700" },
+    focused: { scale: 1.02, boxShadow: "0 0 8px #FFC107" },
     unfocused: { scale: 1, boxShadow: "none" },
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!acceptTerms) return Swal.fire("กรุณายอมรับเงื่อนไขก่อนสมัครสมาชิก");
     if (!firstname) return Swal.fire("กรุณาเลือกคำนำหน้า");
     if (!fullname.trim()) return Swal.fire("กรุณากรอกชื่อจริง");
@@ -61,23 +59,23 @@ export default function RegisterForm() {
           title: "สมัครสมาชิกสำเร็จ",
           text: "คุณสามารถเข้าสู่ระบบได้แล้ว",
           background: "#1a1a1a",
-          color: "#FFD700",
-          confirmButtonColor: "#FFD700",
+          color: "#FFC107",
+          confirmButtonColor: "#FFC107",
         });
 
         setUsername(""); setPassword(""); setFirstname("");
         setFullname(""); setLastname(""); setDob("");
         setAddress(""); setAcceptTerms(false);
 
-        router.push("/login");
+        router.push("/signin");
       } else {
         Swal.fire({
           icon: "error",
           title: "เกิดข้อผิดพลาด",
           text: data.message || "ไม่สามารถสมัครสมาชิกได้",
           background: "#1a1a1a",
-          color: "#FFD700",
-          confirmButtonColor: "#FFD700",
+          color: "#FFC107",
+          confirmButtonColor: "#FFC107",
         });
       }
     } catch (error) {
@@ -86,27 +84,23 @@ export default function RegisterForm() {
         title: "ข้อผิดพลาดเครือข่าย",
         text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
         background: "#1a1a1a",
-        color: "#FFD700",
-        confirmButtonColor: "#FFD700",
+        color: "#FFC107",
+        confirmButtonColor: "#FFC107",
       });
       console.error("Network error:", error);
     }
   };
 
-  const handleBackToLogin = () => router.push("/login");
-
   return (
-    <div className="d-flex justify-content-center align-items-start min-vh-100 py-5"
-      style={{ background: "linear-gradient(135deg, #0b131a, #1a1f28)" }}
-    >
+    <div className="d-flex justify-content-center align-items-center min-vh-100" style={{ backgroundColor: "#1a1a1a", padding: "2rem" }}>
       <motion.div
         className="bg-dark text-white rounded-4 shadow-lg p-5"
-        style={{ width: "90%", maxWidth: "700px" }}
+        style={{ width: "90%", maxWidth: "700px", backgroundColor: "#222" }}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className="text-center fw-bold mb-5" style={{ color: "#FFD700", letterSpacing: 2 }}>
+        <h2 className="text-center fw-bold mb-5" style={{ color: "#FFC107", letterSpacing: 2 }}>
           สมัครสมาชิก
         </h2>
 
@@ -116,7 +110,8 @@ export default function RegisterForm() {
             <label className="form-label fw-semibold text-warning">ชื่อผู้ใช้ / อีเมล</label>
             <input type="text" placeholder="กรอกชื่อผู้ใช้หรืออีเมล" value={username}
               onChange={e => setUsername(e.target.value)}
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3"
+              style={{ borderColor: "#555" }}
             />
           </motion.div>
 
@@ -125,7 +120,8 @@ export default function RegisterForm() {
             <label className="form-label fw-semibold text-warning">รหัสผ่าน</label>
             <input type="password" placeholder="กรอกรหัสผ่าน" value={password}
               onChange={e => setPassword(e.target.value)}
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3"
+              style={{ borderColor: "#555" }}
             />
           </motion.div>
 
@@ -140,17 +136,17 @@ export default function RegisterForm() {
               styles={{
                 control: (base, state) => ({
                   ...base,
-                  backgroundColor: "#2c3646",
-                  borderColor: state.isFocused ? "#FFD700" : "#4b5563",
-                  boxShadow: state.isFocused ? "0 0 8px rgba(255,215,0,0.6)" : "none",
+                  backgroundColor: "#222",
+                  borderColor: state.isFocused ? "#FFC107" : "#555",
+                  boxShadow: state.isFocused ? "0 0 6px rgba(255,193,7,0.6)" : "none",
                   borderRadius: 8,
                   minHeight: 44,
                   color: "#fff",
                 }),
-                menu: base => ({ ...base, backgroundColor: "#2c3646", borderRadius: 8 }),
+                menu: base => ({ ...base, backgroundColor: "#222", borderRadius: 8 }),
                 option: (base, state) => ({
                   ...base,
-                  backgroundColor: state.isFocused ? "#FFD700" : "#2c3646",
+                  backgroundColor: state.isFocused ? "#FFC107" : "#222",
                   color: state.isFocused ? "#1a1a1a" : "#fff",
                   cursor: "pointer",
                 }),
@@ -162,16 +158,16 @@ export default function RegisterForm() {
           {/* ชื่อจริง */}
           <div>
             <label className="form-label fw-semibold text-warning">ชื่อจริง</label>
-            <input type="text" placeholder="ชื่อจริง" value={fullname} onChange={e => setFullname(e.target.value)}
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+            <input type="text" value={fullname} onChange={e => setFullname(e.target.value)}
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3"
             />
           </div>
 
           {/* นามสกุล */}
           <div>
             <label className="form-label fw-semibold text-warning">นามสกุล</label>
-            <input type="text" placeholder="นามสกุล" value={lastname} onChange={e => setLastname(e.target.value)}
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+            <input type="text" value={lastname} onChange={e => setLastname(e.target.value)}
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3"
             />
           </div>
 
@@ -179,15 +175,15 @@ export default function RegisterForm() {
           <div style={{ gridColumn: "1 / 3" }}>
             <label className="form-label fw-semibold text-warning">วันเกิด</label>
             <input type="date" value={dob} onChange={e => setDob(e.target.value)}
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3"
             />
           </div>
 
           {/* ที่อยู่ */}
           <div style={{ gridColumn: "1 / 3" }}>
             <label className="form-label fw-semibold text-warning">ที่อยู่</label>
-            <textarea rows={3} value={address} onChange={e => setAddress(e.target.value)}
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+            <textarea value={address} onChange={e => setAddress(e.target.value)} rows={3}
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3"
             />
           </div>
 
@@ -204,7 +200,7 @@ export default function RegisterForm() {
           <div style={{ gridColumn: "1 / 3" }}>
             <button type="submit" disabled={!acceptTerms}
               className={`btn w-100 fw-bold ${acceptTerms ? "" : "opacity-50 cursor-not-allowed"}`}
-              style={{ background: "linear-gradient(135deg, #FFD700, #FFB800)", color: "#1a1a1a" }}
+              style={{ backgroundColor: "#FFC107", color: "#1a1a1a" }}
             >
               สมัครสมาชิก
             </button>
@@ -212,12 +208,10 @@ export default function RegisterForm() {
 
           {/* ปุ่มกลับเข้าสู่ระบบ */}
           <div style={{ gridColumn: "1 / 3" }}>
-           <button
-            type="button"
-            onClick={() => router.push("/signin")}
-            className="btn w-100 mt-3 fw-bold btn-outline-warning"
+            <button type="button" onClick={() => router.push("/signin")}
+              className="btn w-100 mt-3 fw-bold btn-outline-warning"
             >
-            กลับเข้าสู่ระบบ
+              กลับเข้าสู่ระบบ
             </button>
           </div>
         </form>

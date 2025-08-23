@@ -147,6 +147,7 @@ export default function EditUserPage() {
           ✏️ แก้ไขข้อมูลผู้ใช้
         </motion.h2>
 
+        {/* คำนำหน้า */}
         <motion.div className="mb-3" {...motionItem(0.1)}>
           <label className="form-label text-warning">คำนำหน้า</label>
           <Select
@@ -158,88 +159,91 @@ export default function EditUserPage() {
             styles={{
               control: (base, state) => ({
                 ...base,
-                backgroundColor: '#2c3646',
-                borderColor: state.isFocused ? '#FFD700' : '#4b5563',
-                boxShadow: state.isFocused ? '0 0 8px rgba(255,215,0,0.6)' : 'none',
+                backgroundColor: '#222',
+                borderColor: state.isFocused ? '#FFD700' : '#555',
+                boxShadow: state.isFocused ? '0 0 6px rgba(255,215,0,0.6)' : 'none',
                 borderRadius: '10px',
                 minHeight: '46px',
                 color: '#fff',
               }),
-              menu: (base) => ({ ...base, borderRadius: '10px', backgroundColor: '#2c3646' }),
+              menu: base => ({ ...base, borderRadius: '10px', backgroundColor: '#222' }),
               option: (base, state) => ({
                 ...base,
-                backgroundColor: state.isFocused
-                  ? '#FFD700'
-                  : state.isSelected
-                  ? '#FFC107'
-                  : '#2c3646',
+                backgroundColor: state.isFocused ? '#FFD700' : state.isSelected ? '#FFC107' : '#222',
                 color: state.isFocused || state.isSelected ? '#1f1f1f' : '#fff',
                 cursor: 'pointer',
                 fontWeight: state.isSelected ? 600 : 400,
               }),
-              singleValue: (base) => ({ ...base, color: '#FFD700', fontWeight: 600 }),
-              placeholder: (base) => ({ ...base, color: '#ccc' }),
+              singleValue: base => ({ ...base, color: '#FFD700', fontWeight: 600 }),
+              placeholder: base => ({ ...base, color: '#ccc' }),
             }}
           />
         </motion.div>
 
+        {/* ฟิลด์อื่น ๆ */}
         <div className="row g-3">
+          {/* ชื่อจริง */}
           <motion.div className="col-md-6" {...motionItem(0.2)}>
             <label className="form-label text-warning">ชื่อจริง</label>
             <input
               type="text"
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3 shadow-sm"
               value={userData.fullname}
               onChange={e => setUserData({ ...userData, fullname: e.target.value })}
             />
           </motion.div>
 
+          {/* นามสกุล */}
           <motion.div className="col-md-6" {...motionItem(0.3)}>
             <label className="form-label text-warning">นามสกุล</label>
             <input
               type="text"
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3 shadow-sm"
               value={userData.lastname}
               onChange={e => setUserData({ ...userData, lastname: e.target.value })}
             />
           </motion.div>
 
+          {/* วันเกิด */}
           <motion.div className="col-md-6" {...motionItem(0.4)}>
             <label className="form-label text-warning">วันเกิด (เว้นว่างถ้าไม่เปลี่ยน)</label>
             <input
               type="date"
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3 shadow-sm"
               value={userData.dob}
               onChange={e => setUserData({ ...userData, dob: e.target.value })}
             />
           </motion.div>
 
+          {/* อีเมล / ชื่อผู้ใช้ */}
           <motion.div className="col-md-6" {...motionItem(0.5)}>
             <label className="form-label text-warning">อีเมล / ชื่อผู้ใช้</label>
             <input
               type="text"
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3 shadow-sm"
               value={userData.username}
               onChange={e => setUserData({ ...userData, username: e.target.value })}
               placeholder="กรอกอีเมล หรือชื่อผู้ใช้"
             />
           </motion.div>
 
+          {/* ที่อยู่ */}
           <motion.div className="col-12" {...motionItem(0.6)}>
             <label className="form-label text-warning">ที่อยู่</label>
             <textarea
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3 shadow-sm"
               rows={3}
               value={userData.address}
               onChange={e => setUserData({ ...userData, address: e.target.value })}
             />
           </motion.div>
 
+          {/* รหัสผ่าน */}
           <motion.div className="col-12" {...motionItem(0.7)}>
             <label className="form-label text-warning">รหัสผ่าน (เว้นว่างถ้าไม่เปลี่ยน)</label>
             <input
               type="password"
-              className="form-control bg-secondary text-white border-0 shadow-sm rounded-3"
+              className="form-control bg-dark text-white border-1 border-secondary rounded-3 shadow-sm"
               placeholder="กรอกรหัสผ่านใหม่ถ้าต้องการเปลี่ยน"
               value={userData.password}
               onChange={e => setUserData({ ...userData, password: e.target.value })}
@@ -247,10 +251,11 @@ export default function EditUserPage() {
           </motion.div>
         </div>
 
+        {/* ปุ่ม */}
         <motion.div className="mt-4" {...motionItem(0.8)}>
           <button
             type="submit"
-            className="btn w-100 fw-bold"
+            className="btn w-100 fw-bold shadow-sm"
             style={{ background: 'linear-gradient(135deg, #FFD700, #FFB800)', color: '#1f1f1f' }}
           >
             อัปเดตข้อมูล
