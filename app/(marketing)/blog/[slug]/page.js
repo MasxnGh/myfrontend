@@ -12,9 +12,8 @@ export default function BlogPost({ params }) {
   const { slug } = params;
 
   return (
-    <div>
-      <h1>บทความ: {slug}</h1>
-      <p>เนื้อหาบทความ...</p>
-    </div>
+    <>
+    <h1><center>Contact</center></h1>
+    </>
   );
 }
